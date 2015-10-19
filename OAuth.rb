@@ -5,7 +5,7 @@ require 'openssl'
 # To use this formula just pass in your consumer key, consumer secret, URL you're 
 # requesting and finally the params you want to pass in as a hash. 
 
-def sign(key, secret, request_url, hash_params = {})
+def sign(key, secret, request_url, hash_params = {}, token_secret = nil, token = nil)
 	tstamp = generate_timestamp
 	nonce = generate_nonce
 
@@ -15,7 +15,7 @@ def sign(key, secret, request_url, hash_params = {})
 		"oauth_timestamp" => tstamp,
 		"oauth_nonce" => nonce,
 		"oauth_version" => '1.0',
-		"oauth_token" => ""
+		"oauth_token" => token
 	}
 
 	sorted_hash = {}
