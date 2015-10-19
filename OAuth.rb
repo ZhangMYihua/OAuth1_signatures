@@ -9,6 +9,7 @@ def sign(key, secret, request_url, hash_params = {}, token_secret = nil, token =
 	tstamp = generate_timestamp
 	nonce = generate_nonce
 
+
 	parameters = {
 		"oauth_signature_method" => 'HMAC-SHA1',
 		"oauth_consumer_key" => key,
@@ -21,10 +22,12 @@ def sign(key, secret, request_url, hash_params = {}, token_secret = nil, token =
 	sorted_hash = {}
 	params_keys = hash_params.keys.sort
 
+	# This sorts the hash params if any were passed in
 	params_keys.each do |param_key|
 		sorted_hash.merge!(Hash[CGI.escape(param_key), CGI.escape(hash_params[param_key])])
 	end
 
+	#This sorts the parameters defined above that oauth needs
 	sorted_keys = parameters.keys.sort
 
 	sorted_keys.each do |sorted_key|
@@ -34,7 +37,10 @@ def sign(key, secret, request_url, hash_params = {}, token_secret = nil, token =
 	output_string = sorted_hash.keys.map {|k| "#{k}=#{sorted_hash[k]}"}.join('&')
 	
 	sig_string = "POST&#{CGI.escape(request_url)}&#{CGI.escape(output_string)}"
-	sig_key = "#{CGI.escape(secret)}&" + ("#{CGI.escape(token_secret)}" if token_secret != nil)
+
+	# If you don't need a token secret, this will skip it but the & is necessary.
+
+	sig_key = "#{CGI.escape(secret)}&#{CGI.escape(token_secret) if token_secret != nil)}"
 	digester = OpenSSL::Digest.new('sha1')
 	hmac_code = OpenSSL::HMAC.digest(digester, sig_key, sig_string)
 	finished_sig = Base64.encode64(hmac_code).chomp.gsub(/\n/, '')
