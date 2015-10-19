@@ -34,7 +34,7 @@ def sign(key, secret, request_url, hash_params = {}, token_secret = nil, token =
 	output_string = sorted_hash.keys.map {|k| "#{k}=#{sorted_hash[k]}"}.join('&')
 	
 	sig_string = "POST&#{CGI.escape(request_url)}&#{CGI.escape(output_string)}"
-	sig_key = "#{CGI.escape(secret)}&"
+	sig_key = "#{CGI.escape(secret)}&" + ("#{CGI.escape(token_secret)}" if token_secret != nil)
 	digester = OpenSSL::Digest.new('sha1')
 	hmac_code = OpenSSL::HMAC.digest(digester, sig_key, sig_string)
 	finished_sig = Base64.encode64(hmac_code).chomp.gsub(/\n/, '')
