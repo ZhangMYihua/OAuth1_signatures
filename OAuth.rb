@@ -1,13 +1,14 @@
 require 'uri'
 require 'base64'
 require 'openssl'
+require 'cgi'
 
 
 # To use this formula just pass in your consumer key, consumer secret, URL you're 
 # requesting and finally the params you want to pass in as a hash.
 # The of return of sign is your completed OAuth body. 
 
-def sign(key, secret, request_url, hash_params = {}, token_secret = nil, token = nil)
+def sign(key, secret, request_url, hash_params = {}, token = nil, token_secret = nil)
 	
 	tstamp = generate_timestamp
 	nonce = generate_nonce
@@ -19,8 +20,10 @@ def sign(key, secret, request_url, hash_params = {}, token_secret = nil, token =
 		"oauth_timestamp" => tstamp,
 		"oauth_nonce" => nonce,
 		"oauth_version" => '1.0',
-		"oauth_token" => token
 	}
+	# This will merge a oauth token if token argument is present
+	parameters = parameters.merge(Hash["oauth_token", token]) if token != nil
+	
 
 	sorted_hash = {}
 	params_keys = hash_params.keys.sort
@@ -38,8 +41,8 @@ def sign(key, secret, request_url, hash_params = {}, token_secret = nil, token =
 	sig_string = "POST&#{CGI.escape(request_url)}&#{CGI.escape(output_string)}"
 
 	# If you don't need a token secret, this will skip it but the & is necessary.
+	sig_key = "#{CGI.escape(secret)}&#{CGI.escape(token_secret) if token_secret != nil}"
 
-	sig_key = "#{CGI.escape(secret)}&#{CGI.escape(token_secret) if token_secret != nil)}"
 	digester = OpenSSL::Digest.new('sha1')
 	hmac_code = OpenSSL::HMAC.digest(digester, sig_key, sig_string)
 	finished_sig = Base64.encode64(hmac_code).chomp.gsub(/\n/, '')
@@ -58,3 +61,6 @@ end
 def generate_timestamp
 	Time.now.to_i.to_s
 end
+
+
+puts sign("123142jef338", "ksdaksfjn12341", "https://www.test.com/testing", {"hash" => "hash"}, "123rdqad8", 'afsdwsdaf21')
